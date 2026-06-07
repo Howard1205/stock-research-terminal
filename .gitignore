@@ -4,6 +4,7 @@ __pycache__/
 .pytest_cache/
 .venv/
 backend/cache/*.json
+!backend/cache/stock_universe.json
 backend/cache/reports/
 !backend/cache/.gitkeep
 frontend/node_modules/

@@ -71,7 +71,7 @@ class StockService:
             except Exception as exc:
                 last_error = exc
                 if attempt < attempts - 1:
-                    time.sleep(0.8 * (attempt + 1))
+                    time.sleep(float(attempt + 1))
         if last_error is None:
             raise RuntimeError("外部数据调用未执行")
         raise last_error
@@ -84,6 +84,12 @@ class StockService:
         if cached:
             self._universe = cached["stocks"]
             self.stock_universe_updated_at = cached["updated_at"]
+            return self._universe
+
+        stale_cache = self.cache.get_stale("stock_universe")
+        if stale_cache and stale_cache.get("stocks"):
+            self._universe = stale_cache["stocks"]
+            self.stock_universe_updated_at = stale_cache.get("updated_at")
             return self._universe
 
         try:
@@ -100,7 +106,7 @@ class StockService:
         except Exception as exc:
             raise StockDataError(
                 "STOCK_UNIVERSE_UNAVAILABLE",
-                f"获取 A 股股票池失败：{exc}",
+                "数据源暂时不可用，请稍后重试",
                 "AkShare stock_info_a_code_name",
             ) from exc
 
