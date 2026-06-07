@@ -26,10 +26,14 @@ function apiUrl(path: string): string {
   return `${API_BASE_URL}${path}`;
 }
 
-async function request<T>(url: string, signal?: AbortSignal): Promise<T> {
+async function request<T>(
+  url: string,
+  signal?: AbortSignal,
+  init?: RequestInit,
+): Promise<T> {
   let response: Response;
   try {
-    response = await fetch(apiUrl(url), { signal });
+    response = await fetch(apiUrl(url), { ...init, signal });
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
       throw error;
@@ -133,8 +137,9 @@ export function getInvestorQa(symbol: string, signal?: AbortSignal) {
 
 export function searchStocks(query: string, signal?: AbortSignal) {
   return request<StockSummary[]>(
-    `/api/search-stocks?q=${encodeURIComponent(query)}`,
+    `/api/search-stocks?q=${encodeURIComponent(query)}&limit=20`,
     signal,
+    { cache: "no-store" },
   );
 }
 

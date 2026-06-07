@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { searchStocks } from "../api";
 import type { StockSummary } from "../types";
 
@@ -11,9 +11,11 @@ export function SearchPanel({ onSelect }: SearchPanelProps) {
   const [results, setResults] = useState<StockSummary[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
     const normalized = query.trim();
+    const requestId = ++requestIdRef.current;
     if (!normalized) {
       setResults([]);
       setLoading(false);
@@ -25,8 +27,12 @@ export function SearchPanel({ onSelect }: SearchPanelProps) {
     const timer = window.setTimeout(async () => {
       setLoading(true);
       setError(null);
+      setResults([]);
       try {
-        setResults(await searchStocks(normalized, controller.signal));
+        const nextResults = await searchStocks(normalized, controller.signal);
+        if (requestId === requestIdRef.current) {
+          setResults(nextResults);
+        }
       } catch (requestError) {
         if (
           requestError instanceof DOMException &&
@@ -34,11 +40,13 @@ export function SearchPanel({ onSelect }: SearchPanelProps) {
         ) {
           return;
         }
-        setError(
-          requestError instanceof Error ? requestError.message : "搜索失败",
-        );
+        if (requestId === requestIdRef.current) {
+          setError("股票搜索暂时不可用，请稍后重试");
+        }
       } finally {
-        if (!controller.signal.aborted) setLoading(false);
+        if (!controller.signal.aborted && requestId === requestIdRef.current) {
+          setLoading(false);
+        }
       }
     }, 250);
 
@@ -62,7 +70,7 @@ export function SearchPanel({ onSelect }: SearchPanelProps) {
 
       {query.trim() && (
         <div className="absolute z-20 mt-2 max-h-80 w-full overflow-y-auto rounded-xl border border-line bg-panel shadow-2xl">
-          {loading && <Message>正在查询完整 A 股股票池...</Message>}
+          {loading && <Message>正在搜索 A 股...</Message>}
           {error && <Message tone="error">{error}</Message>}
           {!loading && !error && results.length === 0 && (
             <Message>没有找到匹配股票</Message>
