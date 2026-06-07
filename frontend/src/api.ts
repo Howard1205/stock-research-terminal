@@ -20,15 +20,21 @@ import type {
   StockSummary,
 } from "./types";
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
+
+function apiUrl(path: string): string {
+  return `${API_BASE_URL}${path}`;
+}
+
 async function request<T>(url: string, signal?: AbortSignal): Promise<T> {
   let response: Response;
   try {
-    response = await fetch(url, { signal });
+    response = await fetch(apiUrl(url), { signal });
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
       throw error;
     }
-    throw new Error("无法连接后端，请确认 FastAPI 已在 8006 端口启动。");
+    throw new Error("无法连接后端服务，请稍后重试。");
   }
 
   if (!response.ok) {
@@ -68,7 +74,7 @@ export function getIntraday(
 }
 
 export function requestReportSummary(symbol: string, report: CompanyReport) {
-  return fetch("/api/report-summary", {
+  return fetch(apiUrl("/api/report-summary"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

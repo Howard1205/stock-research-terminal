@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://your-render-service.onrender.com/api/:path*"
+      "destination": "https://stock-research-api-lqea.onrender.com/api/:path*"
     },
     {
       "source": "/:path*",

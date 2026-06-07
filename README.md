@@ -101,18 +101,19 @@ Render 默认文件系统不是永久存储。服务重启或重新部署后，�
 
 ### 2. 填写 Render 公网地址
 
-打开 `frontend/vercel.json`，将：
+生产构建使用 `frontend/.env.production` 中的：
 
 ```text
-https://your-render-service.onrender.com
+VITE_API_BASE_URL=https://stock-research-api-lqea.onrender.com
 ```
 
-替换为实际 Render 服务地址。保留后面的 `/api/:path*`，例如：
+如果后端域名发生变化，需要同时更新该变量和
+`frontend/vercel.json` 中的转发地址。Vercel 转发配置为：
 
 ```json
 {
   "source": "/api/:path*",
-  "destination": "https://stock-research-terminal-api.onrender.com/api/:path*"
+  "destination": "https://stock-research-api-lqea.onrender.com/api/:path*"
 }
 ```
 
